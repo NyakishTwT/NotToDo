@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import (
 from archtool.dependency_injector import DependencyInjector
 from web_fractal.building_utils import import_all_models, initialize_controllers_api
 from sqlalchemy.pool import NullPool
-import app.config as settings
+from app.config import settings
 from app.archtool_conf.custom_layers import APPS, app_layers
 from web_fractal.db import Base
 
@@ -36,6 +36,11 @@ def bundle(app: FastAPI) -> DependencyInjector:
     injector.inject()
 
     app.state.injector = injector
+
+    # web_fractal==0.0.1 still reads the pre-2.0 private attribute name;
+    # archtool>=2.0 renamed it to the public `dependencies`. Bridge until
+    # web_fractal catches up.
+    injector._dependencies = injector.dependencies
 
     initialize_controllers_api(injector=injector, app=app)
 
