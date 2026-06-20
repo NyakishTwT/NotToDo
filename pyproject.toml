@@ -5,9 +5,12 @@ description = "NotToDo backend application"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "archtool>=2.1.1",
     "fastapi>=0.138.0",
     "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.2",
     "sqlalchemy[asyncio]>=2.0.51",
+    "web-fractal>=0.0.1",
 ]
 
 [tool.uv]
