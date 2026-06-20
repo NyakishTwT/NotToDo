@@ -1,0 +1,14 @@
+[project]
+name = "nottodo"
+version = "0.1.0"
+description = "NotToDo backend application"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.138.0",
+    "pydantic>=2.13.4",
+    "sqlalchemy[asyncio]>=2.0.51",
+]
+
+[tool.uv]
+package = false
