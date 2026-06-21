@@ -2,7 +2,7 @@
 set -e
 
 cd "$(dirname "$0")"
-
+export ARCHTOOL_VERBOSE=1
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
 # Вывод информации о запуске

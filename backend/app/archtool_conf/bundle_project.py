@@ -5,6 +5,7 @@ from web_fractal.building_utils import import_all_models, initialize_controllers
 from app.archtool_conf.custom_layers import APPS, app_layers
 from web_fractal.db import Base
 from app.core_integrations.reg_deps import reg_deps
+import typing
 
 BACKEND_ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -21,10 +22,16 @@ def bundle(app: FastAPI) -> DependencyInjector:
     # Универсальная доинъекция для обхода бага archtool 2.1.1
     for instance in injector.dependencies.values():
         cls = type(instance)
-        if not hasattr(cls, "__annotations__"):
+        try:
+            hints = typing.get_type_hints(cls)
+        except Exception:
             continue
-        for attr_name, attr_type in cls.__annotations__.items():
-            if hasattr(instance, attr_name):
+
+        for attr_name, attr_type in hints.items():
+            if (
+                hasattr(instance, attr_name)
+                and getattr(instance, attr_name) is not None
+            ):
                 continue
             try:
                 dep = injector.get_dependency(attr_type)
