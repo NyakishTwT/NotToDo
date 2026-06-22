@@ -1,27 +1,50 @@
-from typing import Any
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from web_fractal.db import UnitOfWork
 
 from .interfaces import TodosRepoABC
 from .models import TodoORM
 
 
 class TodosRepo(TodosRepoABC):
+    session_maker: async_sessionmaker
+
     async def get_all_by_user(
-        self, session: AsyncSession, user_id: int
+        self, user_id: int, uow: UnitOfWork | None = None
     ) -> list[TodoORM]:
         query = select(TodoORM).where(TodoORM.user_id == user_id)
-        result = await session.execute(query)
-        return list(result.scalars().all())
+        if uow:
+            result = await uow.get_session().scalars(query)
+            return list(result.all())
 
-    async def create(self, session: AsyncSession, title: str, user_id: int) -> TodoORM:
+        async with UnitOfWork(self.session_maker) as local_uow:
+            result = await local_uow.get_session().scalars(query)
+            return list(result.all())
 
-        new_todo = TodoORM(title=title, user_id=user_id)
-        session.add(new_todo)
-        await session.flush()
-        return new_todo
+    async def create(
+        self, title: str, user_id: int, uow: UnitOfWork | None = None
+    ) -> TodoORM:
+        if uow:
+            session = uow.get_session()
+            new_todo = TodoORM(title=title, user_id=user_id)
+            session.add(new_todo)
+            await session.flush()
+            return new_todo
 
-    async def get_by_id(self, session: AsyncSession, todo_id: int):
+        async with UnitOfWork(self.session_maker) as local_uow:
+            session = local_uow.get_session()
+            new_todo = TodoORM(title=title, user_id=user_id)
+            session.add(new_todo)
+            await session.flush()
+            await session.refresh(new_todo)
+            return new_todo
+
+    async def get_by_id(
+        self, todo_id: int, uow: UnitOfWork | None = None
+    ) -> TodoORM | None:
         query = select(TodoORM).where(TodoORM.id == todo_id)
-        result = await session.execute(query)
-        return result.scalar_one_or_none()
+        if uow:
+            return await uow.get_session().scalar(query)
+
+        async with UnitOfWork(self.session_maker) as local_uow:
+            return await local_uow.get_session().scalar(query)
