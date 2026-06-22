@@ -1,34 +1,23 @@
 from typing import Any
-from fastapi import HTTPException, status
-from sqlalchemy.ext.asyncio import async_sessionmaker
-from web_fractal.db import UnitOfWork
+from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .interfaces import UsersServiceABC, UsersRepoABC
 
 
 class UsersService(UsersServiceABC):
     users_repo: UsersRepoABC
-    session_maker: async_sessionmaker
 
-    async def create_user(self, email: str, name: str) -> Any:
+    async def create_user(self, session: AsyncSession, email: str, name: str) -> Any:
         if not name.strip():
-            raise ValueError("Имя пользователя не может быть пустым")
+            raise ValueError("Имя не может быть пустым")
+        existing = await self.users_repo.get_by_email(session, email)
+        if existing:
+            raise HTTPException(400, "Пользователь с таким email уже существует")
+        return await self.users_repo.create(session, email, name)
 
-        async with UnitOfWork(self.session_maker) as uow:
-            existing_user = await self.users_repo.get_by_email(email, uow=uow)
-            if existing_user:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Пользователь с таким email уже существует",
-                )
-
-            return await self.users_repo.create(email, name, uow=uow)
-
-    async def get_user_by_id(self, user_id: int, uow: UnitOfWork | None = None) -> Any:
-        user = await self.users_repo.get_by_id(user_id, uow=uow)
+    async def get_user_by_id(self, session: AsyncSession, user_id: int) -> Any:
+        user = await self.users_repo.get_by_id(session, user_id)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Пользователь с id {user_id} не найден",
-            )
+            raise HTTPException(404, f"Пользователь с id {user_id} не найден")
         return user
