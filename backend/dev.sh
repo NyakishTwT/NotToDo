@@ -4,7 +4,7 @@ set -e
 cd "$(dirname "$0")"
 export ARCHTOOL_VERBOSE=1
 export PYTHONPATH=$PYTHONPATH:$(pwd)
-
+uv run alembic upgrade head
 # Вывод информации о запуске
 echo "Starting FastAPI server via UV..."
 echo "Swagger docs: http://127.0.0.1:8000/docs"

@@ -1,4 +1,3 @@
-# app/todos/controllers.py
 from typing import Any
 from fastapi import APIRouter, Query, Path, status
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

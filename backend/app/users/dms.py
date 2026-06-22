@@ -1,4 +1,3 @@
-# backend/app/users/dms.py
 from datetime import datetime
 from pydantic import BaseModel
 
