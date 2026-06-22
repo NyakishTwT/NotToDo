@@ -1,5 +1,4 @@
 from datetime import datetime
-from uuid import UUID
 from web_fractal.dtos import Base
 
 

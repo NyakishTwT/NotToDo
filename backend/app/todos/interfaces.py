@@ -4,6 +4,8 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from web_fractal.http.interfaces import HttpControllerABC
 
+from .dtos import TodoCreate
+
 
 # Возврат с типом Any может будут заменены на типобезопасное поведение, с помощью тех же dto
 # ------ Repo ------
@@ -18,24 +20,43 @@ class TodosRepoABC(ABCRepo):
         """Создать новую задачку"""
         ...
 
+    @abstractmethod
+    async def get_by_id(self, session: AsyncSession, todo_id: int) -> Any | None:
+        """Найти задачу по её уникальному ID"""
+        ...
+
 
 # ------ Services ------
 class TodosServiceABC(ABCService):
     @abstractmethod
     async def get_user_todos(self, session: AsyncSession, user_id: int) -> list[Any]:
         """Домейн логика получения задач"""
+        ...
 
     @abstractmethod
     async def add_todo(self, session: AsyncSession, title: str, user_id: int) -> Any:
         """Домейн логика создания задачи"""
+        ...
+
+    @abstractmethod
+    async def complete_todo(self, session: AsyncSession, todo_id: int) -> Any:
+        ...
+        """Домейн логика для выполненного или не выполненного todo"""
 
 
 # ------ Controllers ------
 class TodosControllerABC(ABCController, HttpControllerABC):
     @abstractmethod
-    async def get_todos(self) -> list[Any]:
-        """Эндпоинт для получения списка todo"""
+    async def get_todos(self, user_id: int) -> list[Any]:
+        """Эндпоинт для получения todo"""
+        ...
 
     @abstractmethod
-    async def create_todo(self) -> Any:
-        """Эндпоинт для создания todo"""
+    async def create_todo(self, data: TodoCreate) -> Any:
+        """Эндпоинт для поста todo"""
+        ...
+
+    @abstractmethod
+    async def complete_todo(self, id: int) -> Any:
+        """Эндпоинт патч для todo(Done or not done)"""
+        ...

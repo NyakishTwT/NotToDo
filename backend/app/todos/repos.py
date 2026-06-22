@@ -20,3 +20,8 @@ class TodosRepo(TodosRepoABC):
         session.add(new_todo)
         await session.flush()
         return new_todo
+
+    async def get_by_id(self, session: AsyncSession, todo_id: int):
+        query = select(TodoORM).where(TodoORM.id == todo_id)
+        result = await session.execute(query)
+        return result.scalar_one_or_none()

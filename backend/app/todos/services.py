@@ -13,3 +13,8 @@ class TodosService(TodosServiceABC):
         if not title.strip():
             raise ValueError("Название задачи не может быть пустым")
         return await self.todos_repo.create(session, title, user_id)
+
+    async def complete_todo(self, session: AsyncSession, todo_id: int):
+        todo = await self.todos_repo.get_by_id(session, todo_id)
+        todo.is_done = True
+        return todo

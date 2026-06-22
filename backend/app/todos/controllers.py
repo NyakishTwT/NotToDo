@@ -1,6 +1,6 @@
 # app/todos/controllers.py
 from typing import Any
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, Path, status
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from web_fractal.db import UnitOfWork, serialize
 
@@ -24,6 +24,7 @@ class TodosController(TodosControllerABC):
             path="",
             status_code=status.HTTP_201_CREATED,
         )
+        self.reg_route(self.complete_todo, methods=["PATCH"], path="/{id}/complete")
 
     async def get_todos(self, user_id: int = Query(...)) -> list[Any]:
         async with UnitOfWork(self.session_maker) as uow:
@@ -38,4 +39,12 @@ class TodosController(TodosControllerABC):
                 session, data.title, data.user_id
             )
             await session.commit()
+            return serialize(TodoDM, result, as_list=False)
+
+    async def complete_todo(self, id: int = Path(...)) -> Any:
+        async with UnitOfWork(self.session_maker) as uow:
+            session = uow.get_session()
+            result = await self.todos_service.complete_todo(session, id)
+            await session.commit()
+            await session.refresh(result)
             return serialize(TodoDM, result, as_list=False)
