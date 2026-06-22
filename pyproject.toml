@@ -9,6 +9,7 @@ dependencies = [
     "aiosqlite>=0.22.1",
     "alembic>=1.18.4",
     "archtool==2.1.1",
+    "email-validator>=2.3.0",
     "fastapi>=0.138.0",
     "furl>=2.1.4",
     "pydantic>=2.13.4",
